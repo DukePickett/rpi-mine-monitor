@@ -8,52 +8,67 @@ import requests
 
 from envirophat import light, weather, motion, analog, leds
 
-
+#this is where we'll post some json data
 API_ENDPOINT = 'http://192.168.0.71:8080/api/sensors/store-reading'
-API_TOKEN = '30d6a4a0-41ed-11e8-bce4-f81a67180469'
+API_TOKEN = 'e85b6b7d-439d-11e8-8dee-067f7aadba9c'
+FILE = '/var/www/html/index.lighttpd.html'
 unit = 'hPa' # Pressure unit, can be either hPa (hectopascals) or Pa (pascals)
-sleep_time = 60*2; # 2 minutes
 
-data = {}
-data['api_token'] = API_TOKEN
-
-def write(data):
+def post(data):
+    data['api_token'] = API_TOKEN
     url     = API_ENDPOINT
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     res = requests.post(url, json=data, headers=headers)
-    sys.stdout.write('.')
-    sys.stdout.flush()
 
-print('\nStarting EnviroPhat monitoring with BitPartner.io\n================================================\n')
+def save(data):
+    f = open(FILE,"w") 
+    f.write(json.dumps(data))
+    f.close()
 
-try:
-    while True:
-	leds.on()
-        rgb = light.rgb()
-        analog_values = analog.read_all()
-        mag_values = motion.magnetometer()
-        acc_values = [round(x,2) for x in motion.accelerometer()]
-        ts = time.time()
-        timestamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+def display(data):
+    print(json.dumps(data))
 
-        data['altitude'] = weather.altitude()
-        data['temperature']  = weather.temperature()
-        data['pressure']  = weather.pressure(unit=unit)
-        data['lux']  = light.light()
-        data['red']  = rgb[0]
-        data['green']  = rgb[1]
-        data['blue']  = rgb[2]
-        data['heading']  = motion.heading()
-        data['timestamp'] = timestamp
+def readdata():
+    leds.on()
 
-        write(data);
-	leds.off()
-	time.sleep(0.1);
-	leds.on()
-	time.sleep(0.1);
-	leds.off()
-        time.sleep(sleep_time)
+    rgb = light.rgb()
+    analog_values = analog.read_all()
+    mag_values = motion.magnetometer()
+    acc_values = [round(x,2) for x in motion.accelerometer()]
+    ts = time.time()
+    timestamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
-except KeyboardInterrupt:
-    pass
+    data = {}
+    data['altitude'] = weather.altitude()
+    data['temperature']  = weather.temperature()
+    data['pressure']  = weather.pressure(unit=unit)
+    data['lux']  = light.light()
+    data['red']  = rgb[0]
+    data['green']  = rgb[1]
+    data['blue']  = rgb[2]
+    data['heading']  = motion.heading()
+    data['timestamp'] = timestamp
 
+    leds.off()
+    return data
+
+def strobe():
+    time.sleep(0.1)
+    leds.on()
+    time.sleep(0.1)
+    leds.off()
+
+#read the data from the sensors
+data = readdata()
+
+#show the data at the terminal
+display(data)
+
+#save the data to the webserver
+save(data)
+
+#post the data to the api endpoint
+post(data)
+
+#strobe the led lights on the sensor
+strobe()
