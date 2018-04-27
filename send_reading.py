@@ -9,8 +9,8 @@ import requests
 from envirophat import light, weather, motion, analog, leds
 
 #this is where we'll post some json data
-API_ENDPOINT = 'http://192.168.0.71:8080/api/sensors/store-reading'
-API_TOKEN = 'e85b6b7d-439d-11e8-8dee-067f7aadba9c'
+API_ENDPOINT = 'http://bitpartner.io/api/sensors/store-reading'
+API_TOKEN = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 FILE = '/var/www/html/index.lighttpd.html'
 unit = 'hPa' # Pressure unit, can be either hPa (hectopascals) or Pa (pascals)
 
